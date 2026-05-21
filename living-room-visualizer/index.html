@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Living Room Flooring Visualizer</title>
+  <style>
+    :root {
+      --panel-bg: #1a1a2e;
+      --panel-text: #ffffff;
+      --accent: #e94560;
+      --muted: #bfc3d0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f0f1b;
+      color: var(--panel-text);
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    #ui-panel {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: min(340px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: rgba(26, 26, 46, 0.95);
+      border: 1px solid rgba(233, 69, 96, 0.4);
+      border-radius: 12px;
+      padding: 14px;
+      z-index: 5;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    #ui-panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: var(--accent);
+    }
+
+    #selected-floor {
+      margin: 0 0 12px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .swatch {
+      border: 2px solid transparent;
+      border-radius: 10px;
+      background: #27293f;
+      padding: 5px;
+      cursor: pointer;
+      color: var(--panel-text);
+      text-align: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .swatch:hover { transform: translateY(-1px); }
+
+    .swatch.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.35);
+    }
+
+    .swatch-preview {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .swatch-label {
+      font-size: 0.74rem;
+      line-height: 1.2;
+    }
+
+    .control {
+      margin: 10px 0;
+      font-size: 0.87rem;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .control input[type="range"] { width: 100%; }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #grout-control { display: none; }
+
+    @media (max-width: 900px) {
+      #ui-panel {
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-height: 40vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="ui-panel" aria-label="Flooring visualizer controls">
+      <h2>Flooring Visualizer</h2>
+      <p id="selected-floor">Selected floor: <strong>Light Oak Hardwood</strong></p>
+
+      <div id="swatches" class="swatch-grid"></div>
+
+      <div id="grout-control" class="control">
+        <label for="grout-color">Tile grout color</label>
+        <input type="color" id="grout-color" value="#d8c1a8" />
+      </div>
+
+      <div class="control">
+        <label for="gloss-slider">
+          Floor gloss (roughness)
+          <span id="gloss-value">0.45</span>
+        </label>
+        <input type="range" id="gloss-slider" min="0" max="1" step="0.01" value="0.45" />
+      </div>
+
+      <div class="control toggle">
+        <input type="checkbox" id="rug-toggle" checked />
+        <label for="rug-toggle">Show rug</label>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/controls/OrbitControls.js';
+
+    // ----- Scene Setup -----
+    const app = document.getElementById('app');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd9e1ea);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(7.4, 6.2, 7.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    app.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.1, 0);
+    controls.enableDamping = true;
+    controls.minDistance = 4;
+    controls.maxDistance = 18;
+    controls.maxPolarAngle = Math.PI / 2.05;
+
+    // ----- Room + Lighting -----
+    const room = new THREE.Group();
+    scene.add(room);
+
+    const ROOM_W = 10;
+    const ROOM_D = 10;
+    const ROOM_H = 8;
+
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xf2f2f4, roughness: 0.92 });
+    const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xf7f7fa, roughness: 0.95 });
+
+    const floorGeometry = new THREE.PlaneGeometry(ROOM_W, ROOM_D);
+
+    const floorBaseMaterial = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.05 });
+    const floorBase = new THREE.Mesh(floorGeometry, floorBaseMaterial);
+    floorBase.rotation.x = -Math.PI / 2;
+    floorBase.receiveShadow = true;
+    room.add(floorBase);
+
+    const floorTransitionMaterial = new THREE.MeshStandardMaterial({
+      transparent: true,
+      opacity: 0,
+      roughness: 0.45,
+      metalness: 0.05
+    });
+    const floorTransition = new THREE.Mesh(floorGeometry, floorTransitionMaterial);
+    floorTransition.rotation.x = -Math.PI / 2;
+    floorTransition.position.y = 0.005;
+    floorTransition.receiveShadow = true;
+    room.add(floorTransition);
+
+    function makeWall(w, h, x, y, z, ry = 0) {
+      const wall = new THREE.Mesh(new THREE.PlaneGeometry(w, h), wallMat);
+      wall.position.set(x, y, z);
+      wall.rotation.y = ry;
+      room.add(wall);
+    }
+
+    makeWall(ROOM_W, ROOM_H, 0, ROOM_H / 2, -ROOM_D / 2, 0);
+    makeWall(ROOM_W, ROOM_H, 0, ROOM_H / 2, ROOM_D / 2, Math.PI);
+    makeWall(ROOM_D, ROOM_H, -ROOM_W / 2, ROOM_H / 2, 0, Math.PI / 2);
+    makeWall(ROOM_D, ROOM_H, ROOM_W / 2, ROOM_H / 2, 0, -Math.PI / 2);
+
+    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W, ROOM_D), ceilingMat);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = ROOM_H;
+    room.add(ceiling);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambient);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 1.05);
+    sun.position.set(3, 7.5, 2);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -8;
+    sun.shadow.camera.right = 8;
+    sun.shadow.camera.top = 8;
+    sun.shadow.camera.bottom = -8;
+    scene.add(sun);
+
+    const windowGlow = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.5, 2),
+      new THREE.MeshBasicMaterial({ color: 0xd5ecff, transparent: true, opacity: 0.8 })
+    );
+    windowGlow.position.set(-ROOM_W / 2 + 0.02, 4.7, -1.2);
+    windowGlow.rotation.y = Math.PI / 2;
+    room.add(windowGlow);
+
+    const windowLight = new THREE.RectAreaLight(0xe9f5ff, 5, 2.5, 2);
+    windowLight.position.set(-ROOM_W / 2 + 0.3, 4.7, -1.2);
+    windowLight.lookAt(0, 2, 0);
+    room.add(windowLight);
+
+    // ----- Furniture -----
+    function addBox({ w, h, d, x, y, z, color, shadow = true }) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.75, metalness: 0.05 })
+      );
+      mesh.position.set(x, y, z);
+      mesh.castShadow = shadow;
+      mesh.receiveShadow = true;
+      room.add(mesh);
+      return mesh;
+    }
+
+    // Sofa
+    addBox({ w: 3.2, h: 0.8, d: 1.2, x: -0.9, y: 0.45, z: 2.5, color: 0x6e7f95 });
+    addBox({ w: 3.2, h: 0.5, d: 0.3, x: -0.9, y: 1.0, z: 2.95, color: 0x5f7186 });
+    addBox({ w: 0.35, h: 0.6, d: 1.2, x: -2.4, y: 0.65, z: 2.5, color: 0x5f7186 });
+    addBox({ w: 0.35, h: 0.6, d: 1.2, x: 0.6, y: 0.65, z: 2.5, color: 0x5f7186 });
+
+    // Coffee table
+    addBox({ w: 1.8, h: 0.1, d: 1.0, x: -0.9, y: 0.38, z: 0.9, color: 0x7e6248 });
+    const legPos = [[-1.65, 0.18, 0.48], [-0.15, 0.18, 0.48], [-1.65, 0.18, 1.32], [-0.15, 0.18, 1.32]];
+    legPos.forEach(([x, y, z]) => addBox({ w: 0.08, h: 0.35, d: 0.08, x, y, z, color: 0x3a2f2a }));
+
+    // TV unit + TV
+    addBox({ w: 2.5, h: 0.45, d: 0.5, x: 2.9, y: 0.25, z: -3.9, color: 0x5a4a3e });
+    addBox({ w: 1.8, h: 1.05, d: 0.08, x: 2.9, y: 1.05, z: -3.64, color: 0x1e1f24 });
+
+    // Rug (separate layer above floor)
+    const rug = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.8, 2.2),
+      new THREE.MeshStandardMaterial({ color: 0xb39f86, roughness: 0.95, metalness: 0.02 })
+    );
+    rug.rotation.x = -Math.PI / 2;
+    rug.position.set(-0.9, 0.012, 1.2);
+    rug.receiveShadow = true;
+    room.add(rug);
+
+    // Optional decor: plant and lamp
+    const pot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.25, 0.3, 0.45, 16),
+      new THREE.MeshStandardMaterial({ color: 0xa66a4c, roughness: 0.8 })
+    );
+    pot.position.set(4.05, 0.23, 3.7);
+    pot.castShadow = true;
+    pot.receiveShadow = true;
+    room.add(pot);
+
+    const leaves = new THREE.Mesh(
+      new THREE.SphereGeometry(0.45, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x4f8c59, roughness: 0.8 })
+    );
+    leaves.position.set(4.05, 0.82, 3.7);
+    leaves.castShadow = true;
+    room.add(leaves);
+
+    const lampPole = addBox({ w: 0.08, h: 1.45, d: 0.08, x: -3.7, y: 0.72, z: -3.6, color: 0xcccccc });
+    lampPole.castShadow = false;
+    const shade = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.35, 0.35, 20),
+      new THREE.MeshStandardMaterial({ color: 0xf3ead8, roughness: 0.85 })
+    );
+    shade.position.set(-3.7, 1.58, -3.6);
+    shade.castShadow = true;
+    room.add(shade);
+
+    // ----- Procedural Texture Generation -----
+    function makeCanvasTexture(drawFn, repeatX = 3.5, repeatY = 3.5) {
+      const size = 512;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      drawFn(ctx, size);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(repeatX, repeatY);
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.needsUpdate = true;
+      return { texture, canvas };
+    }
+
+    function drawWood(ctx, size, colors) {
+      const plankH = Math.floor(size / 9);
+      for (let y = 0; y < size; y += plankH) {
+        const c = colors[Math.floor(Math.random() * colors.length)];
+        ctx.fillStyle = c;
+        ctx.fillRect(0, y, size, plankH);
+
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        ctx.fillRect(0, y + plankH - 2, size, 2);
+
+        for (let i = 0; i < 70; i++) {
+          const gx = Math.random() * size;
+          const gy = y + Math.random() * plankH;
+          ctx.fillStyle = 'rgba(0,0,0,0.07)';
+          ctx.fillRect(gx, gy, 24 + Math.random() * 28, 1);
+        }
+      }
+    }
+
+    function drawMarble(ctx, size) {
+      ctx.fillStyle = '#f7f7f5';
+      ctx.fillRect(0, 0, size, size);
+      for (let i = 0; i < 14; i++) {
+        ctx.strokeStyle = `rgba(120, 120, 120, ${0.14 + Math.random() * 0.12})`;
+        ctx.lineWidth = 1 + Math.random() * 2;
+        ctx.beginPath();
+        let x = Math.random() * size * 0.4;
+        let y = Math.random() * size;
+        ctx.moveTo(x, y);
+        for (let s = 0; s < 5; s++) {
+          x += 80 + Math.random() * 60;
+          y += -40 + Math.random() * 80;
+          ctx.lineTo(Math.min(size, x), Math.max(0, Math.min(size, y)));
+        }
+        ctx.stroke();
+      }
+    }
+
+    function drawConcrete(ctx, size) {
+      ctx.fillStyle = '#93979e';
+      ctx.fillRect(0, 0, size, size);
+      const img = ctx.getImageData(0, 0, size, size);
+      const data = img.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const n = Math.floor((Math.random() - 0.5) * 28);
+        data[i] += n;
+        data[i + 1] += n;
+        data[i + 2] += n;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function drawTerracotta(ctx, size, groutColor = '#d8c1a8') {
+      const tile = 64;
+      ctx.fillStyle = groutColor;
+      ctx.fillRect(0, 0, size, size);
+      for (let y = 0; y < size; y += tile) {
+        for (let x = 0; x < size; x += tile) {
+          ctx.fillStyle = (x / tile + y / tile) % 2 ? '#b75739' : '#c96544';
+          ctx.fillRect(x + 4, y + 4, tile - 8, tile - 8);
+        }
+      }
+    }
+
+    function drawHerringbone(ctx, size) {
+      ctx.fillStyle = '#bf9a72';
+      ctx.fillRect(0, 0, size, size);
+      const step = 48;
+      ctx.strokeStyle = 'rgba(70,45,28,0.30)';
+      ctx.lineWidth = 3;
+      for (let y = -size; y < size * 2; y += step) {
+        for (let x = -size; x < size * 2; x += step) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + step, y + step);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + step, y);
+          ctx.lineTo(x, y + step);
+          ctx.stroke();
+        }
+      }
+      for (let i = 0; i < 250; i++) {
+        ctx.fillStyle = 'rgba(0,0,0,0.06)';
+        ctx.fillRect(Math.random() * size, Math.random() * size, 12 + Math.random() * 20, 1);
+      }
+    }
+
+    function drawDarkWalnut(ctx, size) {
+      drawWood(ctx, size, ['#5e3e2c', '#4a2f21', '#603f2b']);
+    }
+
+    function drawLightOak(ctx, size) {
+      drawWood(ctx, size, ['#d8b98f', '#cfad7f', '#e0c39a']);
+    }
+
+    const floorOptions = [
+      { id: 'light-oak', name: 'Light Oak Hardwood', draw: (ctx, size) => drawLightOak(ctx, size) },
+      { id: 'dark-walnut', name: 'Dark Walnut Hardwood', draw: (ctx, size) => drawDarkWalnut(ctx, size) },
+      { id: 'white-marble', name: 'White Marble', draw: (ctx, size) => drawMarble(ctx, size), repeat: [2.8, 2.8] },
+      { id: 'concrete-grey', name: 'Concrete Grey', draw: (ctx, size) => drawConcrete(ctx, size), repeat: [3.2, 3.2] },
+      { id: 'terracotta-tile', name: 'Terracotta Tile', draw: (ctx, size, grout) => drawTerracotta(ctx, size, grout), groutAware: true, repeat: [2.6, 2.6] },
+      { id: 'herringbone', name: 'Herringbone Parquet', draw: (ctx, size) => drawHerringbone(ctx, size), repeat: [2.7, 2.7] }
+    ];
+
+    // ----- UI + Material Logic -----
+    const swatchesEl = document.getElementById('swatches');
+    const selectedFloorEl = document.querySelector('#selected-floor strong');
+    const groutControlEl = document.getElementById('grout-control');
+    const groutColorEl = document.getElementById('grout-color');
+    const glossSliderEl = document.getElementById('gloss-slider');
+    const glossValueEl = document.getElementById('gloss-value');
+    const rugToggleEl = document.getElementById('rug-toggle');
+
+    let selectedOption = floorOptions[0];
+    let currentTexture = null;
+    let transition = null;
+
+    function createTextureForOption(option, groutColor = groutColorEl.value) {
+      const repeat = option.repeat || [3.5, 3.5];
+      return makeCanvasTexture((ctx, size) => option.draw(ctx, size, groutColor), repeat[0], repeat[1]);
+    }
+
+    function setSelectedSwatch(id) {
+      [...swatchesEl.children].forEach((el) => el.classList.toggle('active', el.dataset.id === id));
+    }
+
+    function updateGroutVisibility() {
+      groutControlEl.style.display = selectedOption.groutAware ? 'block' : 'none';
+    }
+
+    function applyFloor(option, smooth = true) {
+      selectedOption = option;
+      selectedFloorEl.textContent = option.name;
+      updateGroutVisibility();
+      setSelectedSwatch(option.id);
+
+      const { texture } = createTextureForOption(option);
+
+      if (!smooth || !currentTexture) {
+        floorBaseMaterial.map = texture;
+        floorBaseMaterial.needsUpdate = true;
+        currentTexture = texture;
+        return;
+      }
+
+      floorTransitionMaterial.map = texture;
+      floorTransitionMaterial.roughness = Number(glossSliderEl.value);
+      floorTransitionMaterial.needsUpdate = true;
+      transition = {
+        start: performance.now(),
+        duration: 320,
+        texture
+      };
+    }
+
+    function refreshCurrentTexture() {
+      const { texture } = createTextureForOption(selectedOption);
+      floorBaseMaterial.map = texture;
+      floorBaseMaterial.needsUpdate = true;
+      currentTexture = texture;
+    }
+
+    floorOptions.forEach((option) => {
+      const { canvas } = createTextureForOption(option, '#d8c1a8');
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.className = 'swatch';
+      swatch.dataset.id = option.id;
+      swatch.setAttribute('aria-label', option.name);
+
+      const preview = document.createElement('div');
+      preview.className = 'swatch-preview';
+      preview.style.backgroundImage = `url(${canvas.toDataURL()})`;
+
+      const label = document.createElement('div');
+      label.className = 'swatch-label';
+      label.textContent = option.name;
+
+      swatch.append(preview, label);
+      swatch.addEventListener('click', () => applyFloor(option, true));
+      swatchesEl.appendChild(swatch);
+    });
+
+    glossSliderEl.addEventListener('input', () => {
+      const value = Number(glossSliderEl.value);
+      glossValueEl.textContent = value.toFixed(2);
+      floorBaseMaterial.roughness = value;
+      floorTransitionMaterial.roughness = value;
+    });
+
+    groutColorEl.addEventListener('input', () => {
+      if (selectedOption.groutAware) {
+        refreshCurrentTexture();
+      }
+    });
+
+    rugToggleEl.addEventListener('change', () => {
+      rug.visible = rugToggleEl.checked;
+    });
+
+    applyFloor(floorOptions[0], false);
+    setSelectedSwatch(floorOptions[0].id);
+    updateGroutVisibility();
+
+    // ----- Render Loop -----
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+
+      if (transition) {
+        const elapsed = performance.now() - transition.start;
+        const t = Math.min(elapsed / transition.duration, 1);
+        floorTransitionMaterial.opacity = t;
+
+        if (t >= 1) {
+          floorBaseMaterial.map = transition.texture;
+          floorBaseMaterial.needsUpdate = true;
+          currentTexture = transition.texture;
+          floorTransitionMaterial.opacity = 0;
+          floorTransitionMaterial.map = null;
+          transition = null;
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
