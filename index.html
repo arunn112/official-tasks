@@ -3,52 +3,1356 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Page</title>
+  <title>WonderVision AI by Wonderfloor – Vinyl Flooring Visualiser</title>
   <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand-red: #E03A2B;
+      --brand-orange: #F26522;
+      --brand-gradient: linear-gradient(135deg, #E03A2B, #F26522);
+      --charcoal: #2D2D2D;
+      --dark: #1A1A1A;
+      --light: #FAFAFA;
+      --white: #FFFFFF;
+      --glass-bg: rgba(255,255,255,0.08);
+      --glass-border: rgba(255,255,255,0.15);
+      --glow-orange: rgba(242,101,34,0.25);
+      --glow-red: rgba(224,58,43,0.2);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.12);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.18);
+      --transition: 0.3s ease;
+    }
+    html { scroll-behavior: smooth; }
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-      color: #222;
-      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--charcoal);
+      background: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+
+    /* ===== UTILITIES ===== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .section-tag { 
+      display: inline-block; 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+      color: var(--brand-red); 
+      margin-bottom: 12px; 
+    }
+    .section-heading { 
+      font-size: clamp(1.75rem, 4vw, 2.5rem); 
+      font-weight: 800; 
+      color: var(--charcoal); 
+      margin-bottom: 12px; 
+      line-height: 1.2; 
+    }
+    .section-sub { 
+      font-size: 1.05rem; 
+      color: #555; 
+      max-width: 650px; 
+      margin: 0 auto 48px; 
+      line-height: 1.7; 
+    }
+    .text-center { text-align: center; }
+
+    /* ===== HEADER ===== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 14px 0;
+    }
+    .header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--brand-gradient);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .card {
-      background: white;
-      padding: 2rem 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-      text-align: center;
-      max-width: 480px;
-    }
-    h1 {
-      margin-top: 0;
-      color: #2563eb;
-    }
-    p {
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-    }
-    a {
-      display: inline-block;
-      padding: 0.75rem 1.25rem;
-      background: #2563eb;
       color: white;
-      text-decoration: none;
-      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      position: relative;
+      overflow: hidden;
     }
-    a:hover {
-      background: #1d4ed8;
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 50%;
+      top: 3px;
+      right: 3px;
+    }
+    .logo-icon span { position: relative; z-index: 1; }
+    .logo-text { color: var(--charcoal); }
+    .logo-text em { font-style: normal; color: var(--brand-red); }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .nav-links a:hover { color: var(--brand-red); }
+    .nav-contact {
+      background: var(--brand-gradient);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    .nav-contact:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      font-size: 1.5rem;
+      color: var(--charcoal);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      padding: 80px 0 100px;
+      background: linear-gradient(180deg, #FFF8F6 0%, #FFFFFF 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--glow-orange) 0%, transparent 70%);
+      top: -200px;
+      right: -100px;
+      pointer-events: none;
+    }
+    .hero .container {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(224,58,43,0.08);
+      border: 1px solid rgba(224,58,43,0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--brand-red);
+      margin-bottom: 20px;
+    }
+    .hero-badge::before {
+      content: '✦';
+      font-size: 0.9rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.15;
+      color: var(--charcoal);
+      margin-bottom: 16px;
+    }
+    .hero-supporting {
+      font-size: 1.15rem;
+      color: #444;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+    .btn-primary {
+      background: var(--brand-gradient);
+      color: white;
+      box-shadow: 0 4px 20px var(--glow-orange);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow-orange); }
+    .btn-secondary {
+      background: var(--charcoal);
+      color: white;
+    }
+    .btn-secondary:hover { background: #1a1a1a; transform: translateY(-2px); }
+    .btn-tertiary {
+      background: transparent;
+      border: 2px solid var(--brand-red);
+      color: var(--brand-red);
+    }
+    .btn-tertiary:hover { background: rgba(224,58,43,0.05); transform: translateY(-2px); }
+    .hero-micro {
+      font-size: 0.82rem;
+      color: #777;
+      font-style: italic;
+    }
+
+    /* Hero Visualiser Mockup */
+    .hero-visual {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      background: #1a1a1a;
+      aspect-ratio: 4/3;
+    }
+    .hero-visual-room {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #8B7355 0%, #A0896C 30%, #C4A882 60%, #D4B896 100%);
+      position: relative;
+    }
+    .hero-visual-room::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      background: linear-gradient(180deg, rgba(180,140,100,0.3) 0%, #B8956A 20%, #A0784E 100%);
+      background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 120px);
+    }
+    .hero-visual-room::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      background: linear-gradient(0deg, rgba(242,101,34,0.08), transparent);
+      animation: floorGlow 3s ease-in-out infinite;
+    }
+    @keyframes floorGlow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    .visualiser-sidebar {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: 140px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .sidebar-swatch {
+      width: 100%;
+      height: 32px;
+      border-radius: 6px;
+      position: relative;
+    }
+    .sidebar-swatch:nth-child(1) { background: #C8A87C; }
+    .sidebar-swatch:nth-child(2) { background: #8B6F47; }
+    .sidebar-swatch:nth-child(3) { background: #D4C4A8; }
+    .sidebar-swatch:nth-child(4) { background: #6B8E7B; border: 2px solid var(--brand-red); }
+    .sidebar-swatch:nth-child(5) { background: #A0522D; }
+    .sidebar-label {
+      font-size: 0.6rem;
+      text-align: center;
+      color: #666;
+      margin-top: auto;
+      font-weight: 600;
+    }
+    .visualiser-chips {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .vis-chip {
+      background: rgba(255,255,255,0.92);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--charcoal);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .visualiser-actions {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+    }
+    .vis-action {
+      background: rgba(255,255,255,0.9);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: #444;
+    }
+    .ai-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: pulseBadge 2s ease-in-out infinite;
+    }
+    .ai-badge::before {
+      content: '✦';
+      color: var(--brand-orange);
+    }
+    @keyframes pulseBadge {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+    }
+
+    /* ===== SECTION 2: START VISUALISING ===== */
+    .section-start {
+      padding: 100px 0;
+      background: var(--white);
+    }
+    .start-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .start-card {
+      background: var(--light);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: var(--radius);
+      padding: 40px 30px;
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .start-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--brand-gradient);
+      opacity: 0;
+      transition: var(--transition);
+    }
+    .start-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: var(--shadow); 
+      border-color: rgba(224,58,43,0.2);
+    }
+    .start-card:hover::before { opacity: 1; }
+    .start-card-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      background: rgba(242,101,34,0.08);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+    .start-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--charcoal);
+    }
+    .start-card p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .start-card .btn { padding: 10px 22px; font-size: 0.85rem; }
+
+    /* QR Mock */
+    .qr-mock {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      background: #fff;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 2px;
+      padding: 6px;
+    }
+    .qr-mock span {
+      background: var(--charcoal);
+      border-radius: 1px;
+    }
+    .qr-mock span:nth-child(even) { background: transparent; }
+
+    /* Scene thumbnails */
+    .scene-thumbs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .scene-thumb {
+      height: 40px;
+      border-radius: 6px;
+      background: #ddd;
+    }
+    .scene-thumb:nth-child(1) { background: linear-gradient(135deg, #87CEEB, #4682B4); }
+    .scene-thumb:nth-child(2) { background: linear-gradient(135deg, #90EE90, #228B22); }
+    .scene-thumb:nth-child(3) { background: linear-gradient(135deg, #DEB887, #8B4513); }
+    .scene-thumb:nth-child(4) { background: linear-gradient(135deg, #FFB6C1, #DC143C); }
+
+    /* ===== SECTION 3: DEMO SCENE EXPLORER ===== */
+    .section-demo {
+      padding: 100px 0;
+      background: linear-gradient(180deg, #F9F7F5 0%, #FFFFFF 100%);
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-row-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #555;
+      margin-right: 8px;
+      min-width: 75px;
+    }
+    .filter-chip {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--white);
+      border: 1px solid #ddd;
+      color: #555;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .filter-chip:hover, .filter-chip.active {
+      background: var(--brand-gradient);
+      color: white;
+      border-color: transparent;
+    }
+    .filter-select {
+      padding: 8px 32px 8px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid #ddd;
+      background: var(--white);
+      color: #555;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      cursor: pointer;
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 36px;
+    }
+    .demo-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .demo-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: var(--shadow); 
+    }
+    .demo-card-img {
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-card-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.3), transparent 50%);
+    }
+    .demo-card-img .demo-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      z-index: 1;
+    }
+    .demo-card-body { padding: 16px; }
+    .demo-card-body h4 { font-size: 0.95rem; margin-bottom: 4px; }
+    .demo-card-body p { font-size: 0.8rem; color: #777; margin-bottom: 12px; }
+    .demo-card-cta {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--brand-red);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .demo-card-cta::after { content: '→'; }
+    /* Demo scene colors */
+    .demo-bg-hospital { background: linear-gradient(135deg, #E8F4FD, #B3D9F2); }
+    .demo-bg-school { background: linear-gradient(135deg, #FFF9C4, #FFE082); }
+    .demo-bg-office { background: linear-gradient(135deg, #E8EAF6, #9FA8DA); }
+    .demo-bg-hotel { background: linear-gradient(135deg, #F3E5F5, #CE93D8); }
+    .demo-bg-cafe { background: linear-gradient(135deg, #EFEBE9, #BCAAA4); }
+    .demo-bg-residential { background: linear-gradient(135deg, #E8F5E9, #A5D6A7); }
+    .demo-bg-sports { background: linear-gradient(135deg, #FFF3E0, #FFB74D); }
+    .demo-bg-supermarket { background: linear-gradient(135deg, #E0F7FA, #80DEEA); }
+
+    /* ===== SECTION 4: COLLECTIONS ===== */
+    .section-collections {
+      padding: 100px 0;
+      background: var(--white);
+    }
+    .collections-scroll {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      padding-bottom: 20px;
+      scroll-snap-type: x mandatory;
+      -ms-overflow-style: none;
+      scrollbar-width: thin;
+    }
+    .collection-card {
+      min-width: 300px;
+      max-width: 320px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      background: var(--white);
+      transition: var(--transition);
+    }
+    .collection-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: var(--shadow); 
+    }
+    .collection-img {
+      height: 180px;
+      position: relative;
+    }
+    .collection-img-krayons { background: linear-gradient(135deg, #FF6B6B, #FFA07A, #FFD93D, #6BCB77); }
+    .collection-img-durofloor { background: linear-gradient(135deg, #6B7B8D, #8D9EAB, #4A5568); }
+    .collection-img-trendo { background: linear-gradient(135deg, #D2691E, #8B4513, #A0522D, #CD853F); }
+    .collection-img-braavo { background: linear-gradient(135deg, #778899, #B0C4DE, #5F9EA0); }
+    .collection-img-robust { background: linear-gradient(135deg, #4A4A4A, #696969, #808080); }
+    .collection-img-luxuria { background: linear-gradient(135deg, #DAA520, #B8860B, #FFD700); }
+    .collection-body { padding: 20px; }
+    .collection-body h4 { font-size: 1.05rem; margin-bottom: 8px; color: var(--charcoal); }
+    .collection-body p { font-size: 0.82rem; color: #666; margin-bottom: 14px; line-height: 1.5; }
+    .collection-swatches {
+      display: flex;
+      gap: 6px;
+    }
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* ===== SECTION 5: HOW IT WORKS ===== */
+    .section-how {
+      padding: 100px 0;
+      background: linear-gradient(180deg, #F9F7F5 0%, #FFF 100%);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 44px;
+      left: 12%;
+      right: 12%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--brand-red), var(--brand-orange), var(--brand-red));
+      opacity: 0.3;
+    }
+    .step-card {
+      text-align: center;
+      position: relative;
+      padding: 0 10px;
+    }
+    .step-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--brand-gradient);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 15px var(--glow-orange);
+    }
+    .step-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--charcoal);
+    }
+    .step-card p {
+      font-size: 0.82rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ===== SECTION 6: FEATURES ===== */
+    .section-features {
+      padding: 100px 0;
+      background: var(--white);
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--light);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      transition: var(--transition);
+    }
+    .feature-card:hover { 
+      transform: translateY(-3px); 
+      box-shadow: var(--shadow); 
+      border-color: rgba(224,58,43,0.15);
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(242,101,34,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
+    .feature-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--charcoal);
+    }
+    .feature-card p {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ===== SECTION 7: BEFORE/AFTER ===== */
+    .section-before-after {
+      padding: 100px 0;
+      background: linear-gradient(180deg, #F9F7F5 0%, #FFF 100%);
+    }
+    .ba-chips {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .ba-chip {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--white);
+      border: 1px solid #ddd;
+      color: #555;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .ba-chip:hover, .ba-chip.active {
+      background: var(--brand-gradient);
+      color: white;
+      border-color: transparent;
+    }
+    .ba-slider {
+      max-width: 900px;
+      margin: 0 auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #eee;
+    }
+    .ba-side {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+    }
+    .ba-before {
+      left: 0;
+      width: 50%;
+      background: linear-gradient(135deg, #B8956A, #C4A882, #8B7355);
+    }
+    .ba-after {
+      right: 0;
+      width: 50%;
+      background: linear-gradient(135deg, #8B6F47, #A07850, #6B5040);
+      position: relative;
+    }
+    .ba-after::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(242,101,34,0.1), transparent 50%);
+    }
+    .ba-label {
+      position: absolute;
+      bottom: 16px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 12px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+    }
+    .ba-before .ba-label { left: 16px; }
+    .ba-after .ba-label { right: 16px; }
+    .ba-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      background: white;
+      z-index: 2;
+      cursor: ew-resize;
+    }
+    .ba-handle::after {
+      content: '⟨⟩';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--charcoal);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      font-weight: 700;
+      letter-spacing: -2px;
+    }
+    .ba-cta {
+      text-align: center;
+      margin-top: 36px;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      padding: 40px 0;
+      background: var(--dark);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .footer strong { color: white; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .hero .container { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { max-width: 600px; margin: 0 auto; }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid::before { display: none; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-contact { display: none; }
+      .mobile-menu-btn { display: block; }
+      .hero { padding: 50px 0 60px; }
+      .hero h1 { font-size: 1.75rem; }
+      .start-grid { grid-template-columns: 1fr; }
+      .demo-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; gap: 32px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .filter-row { gap: 6px; }
+      .filter-chip { padding: 6px 12px; font-size: 0.72rem; }
+      .collection-card { min-width: 260px; }
+      .ba-slider { aspect-ratio: 4/3; }
+      .visualiser-sidebar { width: 100px; }
+    }
+    @media (max-width: 480px) {
+      .hero-ctas { flex-direction: column; }
+      .btn { justify-content: center; width: 100%; }
+      .hero-visual { aspect-ratio: 3/2; }
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Welcome</h1>
-    <p>This is a simple HTML page created for your repository.</p>
-    <a href="#">Get Started</a>
-  </main>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container">
+      <a href="#" class="logo">
+        <div class="logo-icon"><span>WV</span></div>
+        <div class="logo-text"><em>WonderVision</em> AI <small style="font-weight:400;font-size:0.7rem;opacity:0.6;">by Wonderfloor</small></div>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#demo-scenes">Demo Scenes</a></li>
+          <li><a href="#collections">Collections</a></li>
+          <li><a href="#before-after">Before / After</a></li>
+        </ul>
+      </nav>
+      <a href="#contact" class="nav-contact">Contact Us</a>
+      <button class="mobile-menu-btn" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">WonderVision AI by Wonderfloor</div>
+        <h1>Turn Every Flooring Discussion into a Live Visual Experience</h1>
+        <p class="hero-supporting">See Wonderfloor Vinyl Flooring in Your Space Instantly</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">📷 Upload Photo</a>
+          <a href="#" class="btn btn-secondary">📱 Scan to Upload</a>
+          <a href="#demo-scenes" class="btn btn-tertiary">🖼️ Try Demo Scene</a>
+        </div>
+        <p class="hero-micro">No login required. Start visualising instantly.</p>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-visual-room">
+          <!-- Visualiser Actions -->
+          <div class="visualiser-actions">
+            <span class="vis-action">Compare</span>
+            <span class="vis-action">Share</span>
+            <span class="vis-action">Download</span>
+            <span class="vis-action">Contact Us</span>
+          </div>
+          <!-- AI Badge -->
+          <div class="ai-badge">Applying Pastel Green</div>
+          <!-- Product Chips -->
+          <div class="visualiser-chips">
+            <span class="vis-chip">Krayons</span>
+            <span class="vis-chip">Durofloor</span>
+            <span class="vis-chip">Braavo</span>
+            <span class="vis-chip">Trendo Wood</span>
+          </div>
+          <!-- Sidebar -->
+          <div class="visualiser-sidebar">
+            <div class="sidebar-swatch"></div>
+            <div class="sidebar-swatch"></div>
+            <div class="sidebar-swatch"></div>
+            <div class="sidebar-swatch"></div>
+            <div class="sidebar-swatch"></div>
+            <span class="sidebar-label">Product Preview</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: START VISUALISING -->
+  <section class="section-start">
+    <div class="container text-center">
+      <span class="section-tag">Get Started</span>
+      <h2 class="section-heading">Start Visualising Your Way</h2>
+      <p class="section-sub">Choose the easiest way to experience Wonderfloor vinyl flooring in a real space.</p>
+      <div class="start-grid">
+        <!-- Card 1 -->
+        <div class="start-card">
+          <div class="start-card-icon">📷</div>
+          <h3>Upload Your Space</h3>
+          <p>Upload a room photo and instantly test Wonderfloor vinyl flooring on your own floor.</p>
+          <a href="#" class="btn btn-primary">Upload Photo</a>
+        </div>
+        <!-- Card 2 -->
+        <div class="start-card">
+          <div class="start-card-icon">📱</div>
+          <div class="qr-mock">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <h3>Scan from Mobile</h3>
+          <p>Scan the QR code, capture a photo from your phone, and send it directly into the visualiser.</p>
+          <a href="#" class="btn btn-secondary">Scan to Upload</a>
+        </div>
+        <!-- Card 3 -->
+        <div class="start-card">
+          <div class="start-card-icon">🖼️</div>
+          <div class="scene-thumbs">
+            <div class="scene-thumb"></div>
+            <div class="scene-thumb"></div>
+            <div class="scene-thumb"></div>
+            <div class="scene-thumb"></div>
+          </div>
+          <h3>Try a Demo Scene</h3>
+          <p>Don't have a photo ready? Explore ready-made spaces across industries and try Wonderfloor products instantly.</p>
+          <a href="#demo-scenes" class="btn btn-tertiary">Explore Demo Scenes</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: DEMO SCENE EXPLORER -->
+  <section class="section-demo" id="demo-scenes">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-tag">Demo Scenes</span>
+        <h2 class="section-heading">Explore Flooring Ideas by Space</h2>
+        <p class="section-sub">Choose an industry, browse realistic demo scenes, and open any scene directly inside the WonderVision AI visualiser.</p>
+      </div>
+      <!-- Filter Row 1: Industry -->
+      <div class="filter-row">
+        <span class="filter-row-label">Industry:</span>
+        <span class="filter-chip active">All</span>
+        <span class="filter-chip">Hospital</span>
+        <span class="filter-chip">School</span>
+        <span class="filter-chip">Cafe</span>
+        <span class="filter-chip">Residential</span>
+        <span class="filter-chip">Transport</span>
+        <span class="filter-chip">Hotel</span>
+        <span class="filter-chip">Supermarket</span>
+        <span class="filter-chip">Auditorium</span>
+        <span class="filter-chip">Sports Flooring</span>
+        <span class="filter-chip">Office</span>
+        <span class="filter-chip">Industrial</span>
+      </div>
+      <!-- Filter Row 2: Collection -->
+      <div class="filter-row">
+        <span class="filter-row-label">Collection:</span>
+        <select class="filter-select">
+          <option>All Collections</option>
+          <option>Antique</option>
+          <option>Adventus</option>
+          <option>Braavo</option>
+          <option>Durofloor</option>
+          <option>Duratek</option>
+          <option>D'ZINER</option>
+          <option>Galaxxy</option>
+          <option>GDP</option>
+          <option>Hi-Tech</option>
+          <option>Krayons</option>
+          <option>Luxuria</option>
+          <option>Matrixx</option>
+          <option>Meteor</option>
+          <option>Ornate</option>
+          <option>Orbit</option>
+          <option>Oriion</option>
+          <option>Rangolie</option>
+          <option>Rhythm</option>
+          <option>Robust</option>
+          <option>Siggma</option>
+          <option>Traction / Safety</option>
+          <option>Trendo Wood</option>
+          <option>Trendo Chips</option>
+          <option>Uttsav</option>
+          <option>Wallspro Plus</option>
+        </select>
+      </div>
+      <!-- Demo Grid -->
+      <div class="demo-grid">
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-hospital"><span class="demo-tag">Hospital</span></div>
+          <div class="demo-card-body">
+            <h4>Hospital Corridor</h4>
+            <p>Durofloor · Anti-bacterial finish</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-school"><span class="demo-tag">School</span></div>
+          <div class="demo-card-body">
+            <h4>School Classroom</h4>
+            <p>Krayons · Bright & playful</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-office"><span class="demo-tag">Office</span></div>
+          <div class="demo-card-body">
+            <h4>Modern Office Space</h4>
+            <p>Trendo Wood · Professional warmth</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-hotel"><span class="demo-tag">Hotel</span></div>
+          <div class="demo-card-body">
+            <h4>Hotel Lobby</h4>
+            <p>Luxuria · Premium elegance</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-cafe"><span class="demo-tag">Cafe</span></div>
+          <div class="demo-card-body">
+            <h4>Cafe Interior</h4>
+            <p>Braavo · Warm textures</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-residential"><span class="demo-tag">Residential</span></div>
+          <div class="demo-card-body">
+            <h4>Living Room</h4>
+            <p>Trendo Wood · Home comfort</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-sports"><span class="demo-tag">Sports</span></div>
+          <div class="demo-card-body">
+            <h4>Sports Hall</h4>
+            <p>Robust · High durability</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-img demo-bg-supermarket"><span class="demo-tag">Supermarket</span></div>
+          <div class="demo-card-body">
+            <h4>Supermarket Aisle</h4>
+            <p>Durofloor · Heavy traffic ready</p>
+            <span class="demo-card-cta">Try This Scene</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: COLLECTIONS -->
+  <section class="section-collections" id="collections">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-tag">Collections</span>
+        <h2 class="section-heading">Explore Wonderfloor Vinyl Collections</h2>
+        <p class="section-sub">Browse popular Wonderfloor collections and get a quick feel for textures, colors, and design possibilities before entering the visualiser.</p>
+      </div>
+      <div class="collections-scroll">
+        <!-- Krayons -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-krayons"></div>
+          <div class="collection-body">
+            <h4>Krayons</h4>
+            <p>Bright vinyl flooring options for schools, creative spaces, kids' zones, and expressive interiors.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#FF6B6B"></div>
+              <div class="swatch" style="background:#FFD93D"></div>
+              <div class="swatch" style="background:#6BCB77"></div>
+              <div class="swatch" style="background:#4ECDC4"></div>
+              <div class="swatch" style="background:#9B59B6"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Durofloor -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-durofloor"></div>
+          <div class="collection-body">
+            <h4>Durofloor</h4>
+            <p>Durable vinyl flooring for commercial, institutional, and high-use areas.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#6B7B8D"></div>
+              <div class="swatch" style="background:#8D9EAB"></div>
+              <div class="swatch" style="background:#4A5568"></div>
+              <div class="swatch" style="background:#A0AEC0"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Trendo Wood -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-trendo"></div>
+          <div class="collection-body">
+            <h4>Trendo Wood</h4>
+            <p>Wood-look vinyl flooring for homes, offices, hotels, and premium interiors.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#D2691E"></div>
+              <div class="swatch" style="background:#8B4513"></div>
+              <div class="swatch" style="background:#CD853F"></div>
+              <div class="swatch" style="background:#DEB887"></div>
+              <div class="swatch" style="background:#A0522D"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Braavo -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-braavo"></div>
+          <div class="collection-body">
+            <h4>Braavo</h4>
+            <p>Versatile vinyl flooring designs for modern everyday spaces.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#778899"></div>
+              <div class="swatch" style="background:#B0C4DE"></div>
+              <div class="swatch" style="background:#5F9EA0"></div>
+              <div class="swatch" style="background:#708090"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Robust -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-robust"></div>
+          <div class="collection-body">
+            <h4>Robust</h4>
+            <p>Strong flooring options for demanding spaces with regular foot traffic.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#4A4A4A"></div>
+              <div class="swatch" style="background:#696969"></div>
+              <div class="swatch" style="background:#808080"></div>
+              <div class="swatch" style="background:#555"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Luxuria -->
+        <div class="collection-card">
+          <div class="collection-img collection-img-luxuria"></div>
+          <div class="collection-body">
+            <h4>Luxuria</h4>
+            <p>Premium vinyl flooring styles for hospitality, homes, offices, and elegant interiors.</p>
+            <div class="collection-swatches">
+              <div class="swatch" style="background:#DAA520"></div>
+              <div class="swatch" style="background:#B8860B"></div>
+              <div class="swatch" style="background:#FFD700"></div>
+              <div class="swatch" style="background:#CD7F32"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: HOW IT WORKS -->
+  <section class="section-how" id="how-it-works">
+    <div class="container text-center">
+      <span class="section-tag">How It Works</span>
+      <h2 class="section-heading">From Your Photo to Flooring Preview in Seconds</h2>
+      <p class="section-sub">Four simple steps to visualise Wonderfloor vinyl flooring in any space.</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h4>Upload, scan, or choose a demo</h4>
+          <p>Start with your own room photo, send one from mobile, or select a ready-made demo scene.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h4>Explore Wonderfloor vinyl collections</h4>
+          <p>Browse different colors, patterns, textures, and product options inside the visualiser.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h4>Apply flooring instantly</h4>
+          <p>See Wonderfloor vinyl flooring appear in the selected space in real time.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h4>Compare, share, download, or enquire</h4>
+          <p>Use the preview to discuss ideas, compare looks, download the result, share it, or contact the team.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: FEATURES -->
+  <section class="section-features">
+    <div class="container text-center">
+      <span class="section-tag">Features</span>
+      <h2 class="section-heading">Everything You Need Inside the Visualiser</h2>
+      <p class="section-sub">Once you enter WonderVision AI, you can test, compare, save, and share flooring ideas without switching tools.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h4>Real-time vinyl flooring preview</h4>
+          <p>Apply Wonderfloor vinyl flooring directly on uploaded photos or demo scenes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏢</div>
+          <h4>Industry-ready demo spaces</h4>
+          <p>Try flooring ideas across hospitals, schools, homes, hotels, cafes, supermarkets, transport spaces, auditoriums, sports areas, and more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h4>Collection-based product browsing</h4>
+          <p>Explore Wonderfloor collections like Krayons, Durofloor, Braavo, Robust, Trendo Wood, and more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h4>Compare looks instantly</h4>
+          <p>Switch between flooring options and compare designs before making a decision.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h4>Share and download previews</h4>
+          <p>Save visuals for client meetings, showroom discussions, internal approvals, or project planning.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h4>Contact or request enquiry</h4>
+          <p>Move from visual selection to product discussion directly from the experience.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: BEFORE/AFTER -->
+  <section class="section-before-after" id="before-after">
+    <div class="container text-center">
+      <span class="section-tag">Before &amp; After</span>
+      <h2 class="section-heading">See the Difference Before You Decide</h2>
+      <p class="section-sub">Drag the slider to compare the original space with Wonderfloor vinyl flooring applied.</p>
+      <div class="ba-chips">
+        <span class="ba-chip active">Residential</span>
+        <span class="ba-chip">Office</span>
+        <span class="ba-chip">Hospital</span>
+        <span class="ba-chip">School</span>
+        <span class="ba-chip">Hotel</span>
+        <span class="ba-chip">Sports</span>
+      </div>
+      <div class="ba-slider">
+        <div class="ba-side ba-before">
+          <span>Original Space</span>
+          <span class="ba-label">Before</span>
+        </div>
+        <div class="ba-side ba-after">
+          <span>With Wonderfloor</span>
+          <span class="ba-label">After</span>
+        </div>
+        <div class="ba-handle"></div>
+      </div>
+      <div class="ba-cta">
+        <a href="#" class="btn btn-primary" style="margin-top:36px;">📷 Upload Your Photo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer" id="contact">
+    <div class="container">
+      <p><strong>WonderVision AI</strong> by Wonderfloor &nbsp;·&nbsp; Vinyl Flooring Visualiser</p>
+      <p style="margin-top:8px;opacity:0.7;">© 2026 Wonderfloor. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Minimal interactivity for filter chips and BA chips -->
+  <script>
+    // Filter chip toggle
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.closest('.filter-row').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+    // BA chip toggle
+    document.querySelectorAll('.ba-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.ba-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+    // Mobile menu toggle (simple)
+    document.querySelector('.mobile-menu-btn').addEventListener('click', () => {
+      const nav = document.querySelector('.nav-links');
+      nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+      nav.style.position = 'absolute';
+      nav.style.top = '60px';
+      nav.style.left = '0';
+      nav.style.right = '0';
+      nav.style.background = 'white';
+      nav.style.flexDirection = 'column';
+      nav.style.padding = '20px';
+      nav.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+      nav.style.zIndex = '100';
+    });
+  </script>
 </body>
 </html>
